@@ -25,11 +25,30 @@ scrollTree.add(tree)
 
 # Text Editor
 te = Gtk.TextView()
+#set word wrap
+te.set_wrap_mode(2)
+
+def show_file(file_name):
+	text_buffer = Gtk.TextBuffer()
+	text_buffer.set_text('')
+	with open(join(NOTES_PATH, file_name), 'r') as fl:
+		text_buffer.set_text(fl.read())
+	te.set_buffer(text_buffer)
+
+def tree_selection_changed(selection):
+	model, treeiter = selection.get_selected()
+	if treeiter != None:
+		show_file(model[treeiter][0])
+
+tree.get_selection().connect("changed", tree_selection_changed)
 
 # File Names, Text Editor Split View
 vp = Gtk.VPaned()
 vp.add1(scrollTree)
-vp.add2(te)
+
+text_view_scroll_view = Gtk.ScrolledWindow()
+text_view_scroll_view.add(te)
+vp.add2(text_view_scroll_view)
 
 # Search Create Text Bar
 sc = Gtk.Entry()
