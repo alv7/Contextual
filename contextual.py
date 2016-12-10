@@ -2,6 +2,7 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+from gi.repository import Gdk
 from os import listdir
 from os.path import isfile, join
 import c_search as csearch
@@ -35,10 +36,16 @@ def show_file(file_name):
 		text_buffer.set_text(fl.read())
 	te.set_buffer(text_buffer)
 
+def clear_text_view():
+	text_buffer = Gtk.TextBuffer()
+	te.set_buffer(text_buffer)
+
 def tree_selection_changed(selection):
 	model, treeiter = selection.get_selected()
 	if treeiter != None:
 		show_file(model[treeiter][0])
+	else:
+		clear_text_view()
 
 tree.get_selection().connect("changed", tree_selection_changed)
 
@@ -51,8 +58,8 @@ text_view_scroll_view.add(te)
 vp.add2(text_view_scroll_view)
 
 # Search Create Text Bar
-sc = Gtk.Entry()
-sc.set_placeholder_text('Search or Create')
+sc_bar = Gtk.Entry()
+sc_bar.set_placeholder_text('Search or Create')
 
 def on_text_change(entry):
 	file_names = csearch.search_folder(entry.get_text())
@@ -61,17 +68,24 @@ def on_text_change(entry):
 	for name in file_names:
 		store.append([name])
 
-sc.connect('changed', on_text_change)
+sc_bar.connect('changed', on_text_change)
 
 # Put view into container
 vb = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-vb.pack_start(sc, False, False, 0)
+vb.pack_start(sc_bar, False, False, 0)
 vb.pack_start(vp, True, True, 0)
 
 # Set up window, add views
 win = Gtk.Window()
 win.set_title('Contextual')
 win.connect("delete-event", Gtk.main_quit)
+
+def key_release(widget, event):
+	if event.keyval == Gdk.KEY_Escape:
+		tree.get_selection().unselect_all()
+		sc_bar.set_text('')
+
+win.connect('key-press-event', key_release)
 
 win.add(vb)
 win.show_all()
