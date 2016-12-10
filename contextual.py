@@ -1,10 +1,10 @@
 
-
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from os import listdir
 from os.path import isfile, join
+import c_search as csearch
 
 NOTES_PATH = 'notes'
 
@@ -35,6 +35,15 @@ vp.add2(te)
 sc = Gtk.Entry()
 sc.set_placeholder_text('Search or Create')
 
+def on_text_change(entry):
+	file_names = csearch.search_folder(entry.get_text())
+	print(file_names, entry.get_text())
+	store.clear()
+	for name in file_names:
+		store.append([name])
+
+sc.connect('changed', on_text_change)
+
 # Put view into container
 vb = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 vb.pack_start(sc, False, False, 0)
@@ -49,4 +58,3 @@ win.add(vb)
 win.show_all()
 
 Gtk.main()
-
